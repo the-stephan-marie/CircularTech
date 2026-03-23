@@ -1,0 +1,32 @@
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+@layer base {
+  body {
+    @apply bg-surface-container-low text-on-surface antialiased;
+    font-family: var(--font-inter), system-ui, sans-serif;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  .font-headline {
+    font-family: var(--font-manrope), system-ui, sans-serif;
+  }
+}
+
+@layer utilities {
+  .bar-tooltip {
+    @apply pointer-events-none opacity-0 transition-opacity duration-150;
+  }
+  .bar-group:hover .bar-tooltip {
+    @apply opacity-100;
+  }
+}
