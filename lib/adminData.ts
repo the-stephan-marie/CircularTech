@@ -86,7 +86,7 @@ export async function fetchDashboardData(): Promise<DashboardData> {
       .limit(5000);
 
     if (error) throw new Error(error.message);
-    rows = (data ?? []) as WasteEntryRow[];
+    rows = (data ?? []) as unknown as WasteEntryRow[];
   } catch (err) {
     const msg =
       err && typeof err === "object" && "message" in err
@@ -105,7 +105,7 @@ export async function fetchDashboardData(): Promise<DashboardData> {
       .order("submitted_at", { ascending: false })
       .limit(5000);
     if (error) throw new Error(error.message);
-    rows = (data ?? []) as WasteEntryRow[];
+    rows = (data ?? []) as unknown as WasteEntryRow[];
   }
 
   const now = Date.now();
@@ -233,7 +233,7 @@ export async function fetchWasteEntries(
   try {
     const { data: rowsData, error: rowsError } = await buildBaseQuery(true);
     if (rowsError) throw new Error(rowsError.message);
-    const rows = (rowsData ?? []) as WasteEntryRow[];
+    const rows = (rowsData ?? []) as unknown as WasteEntryRow[];
     return { rows, totalCount: rows.length };
   } catch (err) {
     const msg =
@@ -244,7 +244,7 @@ export async function fetchWasteEntries(
 
     const { data: rowsData, error: rowsError } = await buildBaseQuery(false);
     if (rowsError) throw new Error(rowsError.message);
-    const rows = (rowsData ?? []) as WasteEntryRow[];
+    const rows = (rowsData ?? []) as unknown as WasteEntryRow[];
     return { rows, totalCount: rows.length };
   }
 }
