@@ -1,6 +1,11 @@
 import { CollectorApp } from "@/components/collector/CollectorApp";
+import { CollectorAuthGuard } from "@/components/CollectorAuthGuard";
 
 export default function CollectorPage() {
-  return <CollectorApp />;
+  return (
+    <CollectorAuthGuard>
+      <CollectorApp />
+    </CollectorAuthGuard>
+  );
 }
 

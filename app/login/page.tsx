@@ -14,9 +14,16 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // If the user is already authenticated, send them straight to the collector flow.
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session?.user) router.replace("/collector");
+    supabase.auth.getSession().then(async ({ data }) => {
+      const user = data.session?.user;
+      if (!user) return;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+      const role = profile?.role ?? "collector";
+      router.replace(role === "admin" ? "/dashboard" : "/collector");
     });
   }, [router, supabase]);
 
@@ -31,13 +38,23 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
+      const { data: signInData, error: signInError } =
+        await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
       if (signInError) throw signInError;
 
-      router.replace("/collector");
+      const userId = signInData.user?.id;
+      const { data: profile } = userId
+        ? await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", userId)
+            .single()
+        : { data: null };
+      const role = profile?.role ?? "collector";
+      router.replace(role === "admin" ? "/dashboard" : "/collector");
     } catch (err) {
       const reason = err instanceof Error ? err.message : String(err);
       setError(reason);
