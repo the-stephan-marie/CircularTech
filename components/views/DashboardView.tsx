@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { DashboardData } from "@/lib/adminData";
 import { fetchDashboardData } from "@/lib/adminData";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 
 function formatQtyKg(v: number) {
   return Number.isFinite(v) ? v.toFixed(1) : "0.0";
@@ -41,9 +42,32 @@ export function DashboardView() {
         if (!cancelled) setLoading(false);
       }
     }
+
     load();
+
+    const supabase = getSupabaseClient();
+    const channel = supabase
+      .channel("dashboard-waste-entries")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "waste_entries",
+        },
+        () => {
+          if (!cancelled) {
+            fetchDashboardData().then((d) => {
+              if (!cancelled) setData(d);
+            });
+          }
+        }
+      )
+      .subscribe();
+
     return () => {
       cancelled = true;
+      supabase.removeChannel(channel);
     };
   }, []);
 

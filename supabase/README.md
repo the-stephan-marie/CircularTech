@@ -31,6 +31,8 @@ Run `fix_rls_stack_depth.sql`.
 
 This patches recursive RLS evaluation caused by `public.is_admin()` + profiles policies.
 
+**Then run `restore_admin_profiles_select.sql`** so admins can read collector profiles for User Management.
+
 ## Seed default collector rows
 Run `seed_three_collectors.sql` to insert/update the three collector entries shown in the User Management UI:
 - Kojo Annan

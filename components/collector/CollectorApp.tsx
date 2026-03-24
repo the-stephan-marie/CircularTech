@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   ensureCollectorSession,
   getCollectorHistory,
@@ -14,6 +15,7 @@ type Tab = "entry" | "history" | "profile";
 const ZONES = ["Rawlings park", "GSL"] as const;
 
 export function CollectorApp() {
+  const router = useRouter();
   const supabase = getSupabaseClient();
 
   const [tab, setTab] = useState<Tab>("entry");
@@ -98,9 +100,7 @@ export function CollectorApp() {
   async function onLogout() {
     try {
       await supabase.auth.signOut();
-      setMessage("Session cleared.");
-      setHistoryRows([]);
-      setTab("entry");
+      router.replace("/login");
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error);
       setMessage(`Unable to sign out: ${reason}`);

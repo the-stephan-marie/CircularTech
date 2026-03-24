@@ -1,17 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 
 const nav = [
   { href: "/dashboard", label: "Dashboard", icon: "dashboard" },
   { href: "/users", label: "User Management", icon: "manage_accounts" },
   { href: "/data", label: "Data Entries", icon: "description" },
-  { href: "/settings", label: "Settings", icon: "settings" },
 ] as const;
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  async function onLogout() {
+    await getSupabaseClient().auth.signOut();
+    router.replace("/login");
+  }
 
   return (
     <aside
@@ -62,7 +68,7 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="mt-auto pt-6">
+      <div className="mt-auto space-y-2 pt-6">
         <div className="flex items-center gap-3 rounded-xl bg-surface-container-low px-3 py-3">
           <div
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-fixed text-xs font-bold tracking-tight text-on-primary-fixed"
@@ -70,7 +76,7 @@ export function Sidebar() {
           >
             AD
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="truncate font-headline text-sm font-semibold text-on-surface">
               Admin Default
             </p>
@@ -79,6 +85,15 @@ export function Sidebar() {
             </p>
           </div>
         </div>
+        <button
+          type="button"
+          onClick={onLogout}
+          className="flex w-full items-center gap-3 rounded-full px-4 py-3 text-left font-headline text-sm font-medium text-on-surface-variant transition-colors hover:bg-surface-container-low"
+          aria-label="Sign out"
+        >
+          <span className="material-symbols-outlined text-[22px]">logout</span>
+          <span>Sign out</span>
+        </button>
       </div>
     </aside>
   );
