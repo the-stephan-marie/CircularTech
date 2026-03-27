@@ -2,6 +2,7 @@
 
 import { computeQuantityKg, type WasteType } from "@/lib/wasteMath";
 import { getSupabaseClient } from "@/lib/supabaseClient";
+import { SUPPORTED_ZONES } from "@/lib/locations";
 
 export type WasteByLocation = {
   zone: string;
@@ -134,14 +135,11 @@ export async function fetchDashboardData(): Promise<DashboardData> {
     if (r.waste_type === "plastic") plasticKg += qtyKg;
   }
 
-  const wasteByLocation = [...byZone.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 6)
-    .map(([zone, quantityKg], i) => ({
-      zone,
-      quantityKg,
-      rank: i + 1,
-    }));
+  const wasteByLocation = SUPPORTED_ZONES.map((zone, i) => ({
+    zone,
+    quantityKg: byZone.get(zone) ?? 0,
+    rank: i + 1,
+  }));
 
   const plasticPct = computePct(plasticKg, totalWasteKg);
   const organicPct = totalWasteKg > 0 ? 100 - plasticPct : 0;

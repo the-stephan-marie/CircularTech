@@ -26,7 +26,6 @@ export function DashboardView() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   useEffect(() => {
     let cancelled = false;
     async function load() {
@@ -73,11 +72,18 @@ export function DashboardView() {
 
   const bars = useMemo(() => {
     if (!data) return [];
-    const top = data.wasteByLocation.slice(0, 2);
-    const max = Math.max(...top.map((b) => b.quantityKg), 0.01);
-    return top.map((b) => ({
+    const rows = [...data.wasteByLocation].sort((a, b) =>
+      a.zone.localeCompare(b.zone, "en", { sensitivity: "base" })
+    );
+    const maxKg = Math.max(...rows.map((b) => b.quantityKg), 0);
+    const denom = maxKg > 0 ? maxKg : 1;
+    return rows.map((b, i) => ({
       ...b,
-      heightPct: Math.max(8, Math.round((b.quantityKg / max) * 100)),
+      rank: i + 1,
+      heightPct:
+        b.quantityKg <= 0
+          ? 0
+          : Math.round((b.quantityKg / denom) * 100),
     }));
   }, [data]);
 
@@ -177,75 +183,90 @@ export function DashboardView() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="rounded-xl bg-surface-container-lowest p-8 shadow-ambient">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <div className="rounded-xl bg-surface-container-lowest p-6 shadow-ambient lg:col-span-9 lg:min-w-0">
           <h3 className="font-headline text-lg font-bold text-on-surface">
             Waste by Location (kg)
           </h3>
 
-          <div className="mt-10 flex h-56 items-end justify-center gap-16 px-4 pb-10">
+          <div className="mt-8 px-1 pb-10">
             {bars.length ? (
-              bars.map((b, idx) => (
-                <div
-                  key={b.zone}
-                  className="bar-group relative flex h-full w-24 flex-col justify-end"
-                >
-                  <div className="bar-tooltip absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-surface-container-lowest/90 px-2.5 py-1.5 text-xs text-on-surface shadow-ambient backdrop-blur-[12px]">
-                    {b.zone}, totalQuantityKg : {b.quantityKg.toFixed(1)} kg
-                  </div>
-
+              <div
+                className="grid h-56 gap-1 sm:gap-1.5 md:gap-2"
+                style={{
+                  gridTemplateColumns: `repeat(${bars.length}, minmax(0, 1fr))`,
+                }}
+              >
+                {bars.map((b, idx) => (
                   <div
-                    className={
-                      idx === 0
-                        ? "w-full rounded-t-lg bg-secondary transition-opacity hover:opacity-90"
-                        : "w-full rounded-t-lg bg-primary transition-opacity hover:opacity-90"
-                    }
-                    style={{ height: `${b.heightPct}%` }}
-                    role="img"
-                    aria-label={`${b.zone} ${b.quantityKg.toFixed(1)} kg`}
-                  />
+                    key={b.zone}
+                    className="bar-group grid h-full min-h-0 min-w-0 grid-rows-[minmax(0,1fr)_auto]"
+                  >
+                    {/* 1fr row gets a definite height so bar % heights paint (avoid items-end / auto-height parents). */}
+                    <div className="relative flex min-h-0 w-full flex-col justify-end">
+                      <div className="bar-tooltip pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 max-w-[min(12rem,28vw)] -translate-x-1/2 rounded-lg bg-surface-container-lowest/90 px-2 py-1.5 text-center text-[10px] leading-tight text-on-surface shadow-ambient backdrop-blur-[12px] sm:max-w-[10rem] sm:text-xs">
+                        {b.zone}: {b.quantityKg.toFixed(1)} kg
+                      </div>
 
-                  <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs font-medium text-on-surface-variant">
-                    {idx + 1}
-                  </span>
-                </div>
-              ))
+                      <div
+                        className={
+                          idx % 2 === 0
+                            ? "w-full shrink-0 rounded-t-md bg-secondary transition-[height,opacity] duration-500 ease-out hover:opacity-90 sm:rounded-t-lg"
+                            : "w-full shrink-0 rounded-t-md bg-primary transition-[height,opacity] duration-500 ease-out hover:opacity-90 sm:rounded-t-lg"
+                        }
+                        style={{
+                          height:
+                            b.quantityKg <= 0 ? "2px" : `${b.heightPct}%`,
+                          minHeight: b.quantityKg <= 0 ? "2px" : undefined,
+                          opacity: b.quantityKg <= 0 ? 0.35 : 1,
+                        }}
+                        role="img"
+                        aria-label={`${b.zone} ${b.quantityKg.toFixed(1)} kg`}
+                      />
+                    </div>
+
+                    <span className="mt-2 block shrink-0 truncate text-center text-[9px] font-medium text-on-surface-variant sm:text-[10px]">
+                      {b.rank}
+                    </span>
+                  </div>
+                ))}
+              </div>
             ) : (
-              <div className="col-span-2 w-full text-center text-sm text-on-surface-variant">
+              <div className="w-full text-center text-sm text-on-surface-variant">
                 No submissions yet.
               </div>
             )}
           </div>
 
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-6 border-t border-outline-variant/[0.15] pt-6">
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 border-t border-outline-variant/[0.15] pt-5">
             {bars.map((b, idx) => (
               <div
                 key={b.zone}
-                className="flex items-center gap-2 text-sm text-on-surface-variant"
+                className="flex max-w-[11rem] items-start gap-2 text-xs text-on-surface-variant sm:text-sm"
               >
                 <span
                   className={
-                    idx === 0
-                      ? "h-2.5 w-2.5 rounded-sm bg-secondary"
-                      : "h-2.5 w-2.5 rounded-sm bg-primary"
+                    idx % 2 === 0
+                      ? "mt-0.5 h-2.5 w-2.5 shrink-0 rounded-sm bg-secondary"
+                      : "mt-0.5 h-2.5 w-2.5 shrink-0 rounded-sm bg-primary"
                   }
                   aria-hidden
                 />
-                <span>
-                  {idx + 1}. {b.zone}
+                <span className="leading-snug">
+                  {b.rank}. {b.zone}
                 </span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="rounded-xl bg-surface-container-lowest p-8 shadow-ambient">
-          <h3 className="font-headline text-lg font-bold text-on-surface">
+        <div className="rounded-xl bg-surface-container-lowest p-5 shadow-ambient lg:col-span-3 lg:min-w-0">
+          <h3 className="font-headline text-base font-bold text-on-surface">
             Waste Composition (%)
           </h3>
 
-          <div className="mx-auto mt-8 flex max-w-xs flex-col items-center">
-            <div className="relative h-48 w-48">
+          <div className="mx-auto mt-5 flex max-w-[220px] flex-col items-center">
+            <div className="relative h-36 w-36 sm:h-40 sm:w-40">
               {donut ? (
                 <svg
                   className="h-full w-full -rotate-90"
@@ -257,7 +278,7 @@ export function DashboardView() {
                     cy="18"
                     r={donut.r}
                     fill="none"
-                    className="stroke-primary"
+                    className="stroke-primary transition-[stroke-dasharray,stroke-dashoffset] duration-500 ease-out"
                     strokeWidth="7"
                     strokeDasharray={`${donut.plasticLen} ${donut.circumference - donut.plasticLen}`}
                     strokeDashoffset="0"
@@ -267,7 +288,7 @@ export function DashboardView() {
                     cy="18"
                     r={donut.r}
                     fill="none"
-                    className="stroke-secondary"
+                    className="stroke-secondary transition-[stroke-dasharray,stroke-dashoffset] duration-500 ease-out"
                     strokeWidth="7"
                     strokeDasharray={`${donut.organicLen} ${donut.circumference - donut.organicLen}`}
                     strokeDashoffset={-donut.plasticLen}
@@ -276,12 +297,12 @@ export function DashboardView() {
               ) : null}
             </div>
 
-            <div className="mt-8 flex w-full flex-wrap justify-center gap-8 border-t border-outline-variant/[0.15] pt-6">
-              <div className="flex items-center gap-2 text-sm text-on-surface-variant">
+            <div className="mt-5 flex w-full flex-col gap-2 border-t border-outline-variant/[0.15] pt-4">
+              <div className="flex items-center gap-2 text-xs text-on-surface-variant">
                 <span className="h-2.5 w-2.5 rounded-sm bg-secondary" />
                 <span>organic</span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-on-surface-variant">
+              <div className="flex items-center gap-2 text-xs text-on-surface-variant">
                 <span className="h-2.5 w-2.5 rounded-sm bg-primary" />
                 <span>plastic</span>
               </div>

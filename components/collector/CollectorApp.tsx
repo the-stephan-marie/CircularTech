@@ -9,10 +9,9 @@ import {
   type WasteType,
 } from "@/lib/collectorSubmission";
 import { getSupabaseClient } from "@/lib/supabaseClient";
+import { SUPPORTED_ZONES } from "@/lib/locations";
 
 type Tab = "entry" | "history" | "profile";
-
-const ZONES = ["Rawlings park", "GSL"] as const;
 
 export function CollectorApp() {
   const router = useRouter();
@@ -323,7 +322,7 @@ export function CollectorApp() {
                     <option value="" disabled>
                       Tap to select
                     </option>
-                    {ZONES.map((z) => (
+                    {SUPPORTED_ZONES.map((z) => (
                       <option key={z} value={z}>
                         {z}
                       </option>

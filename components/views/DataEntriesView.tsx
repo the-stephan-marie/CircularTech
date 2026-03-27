@@ -5,6 +5,7 @@ import { getWastePhotoSignedUrl } from "@/lib/wastePhotoStorage";
 import { computeQuantityKg, type WasteType } from "@/lib/wasteMath";
 import { fetchWasteEntries } from "@/lib/adminData";
 import { getSupabaseClient } from "@/lib/supabaseClient";
+import { ADMIN_LOCATION_FILTERS } from "@/lib/locations";
 
 type RowWithCollector = {
   id: string;
@@ -18,7 +19,6 @@ type RowWithCollector = {
   status: string;
 };
 
-const LOCATIONS = ["All Locations", "Rawlings park", "GSL"] as const;
 const WASTE_TYPES = ["All Waste Types", "organic", "plastic"] as const;
 
 function formatEnUSDate(iso: string) {
@@ -34,7 +34,9 @@ export function DataEntriesView() {
 
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
-  const [zone, setZone] = useState<(typeof LOCATIONS)[number]>("All Locations");
+  const [zone, setZone] = useState<(typeof ADMIN_LOCATION_FILTERS)[number]>(
+    "All Locations"
+  );
   const [wasteType, setWasteType] = useState<(typeof WASTE_TYPES)[number]>(
     "All Waste Types"
   );
@@ -223,10 +225,12 @@ export function DataEntriesView() {
             <select
               id="filter-loc"
               value={zone}
-              onChange={(e) => setZone(e.target.value as (typeof LOCATIONS)[number])}
+                    onChange={(e) =>
+                      setZone(e.target.value as (typeof ADMIN_LOCATION_FILTERS)[number])
+                    }
               className="w-full min-w-[140px] rounded-md border-0 bg-surface-container-lowest py-2.5 pl-3 pr-8 text-sm shadow-ambient ring-1 ring-inset ring-outline-variant/20"
             >
-              {LOCATIONS.map((z) => (
+              {ADMIN_LOCATION_FILTERS.map((z) => (
                 <option key={z}>{z}</option>
               ))}
             </select>

@@ -15,7 +15,7 @@ Open [http://localhost:3000](http://localhost:3000) — redirects to `/dashboard
 
 | Path | Screen |
 |------|--------|
-| `/dashboard` | Waste Management Engine |
+| `/dashboard` | Waste Management System |
 | `/users` | User Management |
 | `/data` | Data Entries |
 | `/settings` | Settings placeholder |
